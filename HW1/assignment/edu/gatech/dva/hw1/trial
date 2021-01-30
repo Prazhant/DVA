@@ -1,0 +1,29 @@
+SELECT cast_name,
+         count(*) AS appearance_count
+FROM movie_cast
+WHERE popularity>10
+GROUP BY  cast_name
+ORDER BY  appearance_count desc,cast_name
+limit 5
+
+select title as movie_title, score as movie_score, count(*) as cast_count 
+from movies m, movie_cast mc
+where m.id == mc.movie_id
+group by mc.movie_id
+order by movie_score desc,cast_count
+limit 5
+
+
+select title as movie_title, score as movie_score, count(*) as cast_count 
+from movies m, movie_cast mc
+where m.id == mc.movie_id
+group by mc.movie_id
+order by movie_score desc,cast_count
+limit 5
+
+
+SELECT title AS movie_title, score AS movie_score, count(*) AS cast_count FROM movies m, movie_cast mc WHERE m.id == mc.movie_id GROUP BY mc.movie_id ORDER BY movie_score desc,cast_count, movie_title limit 5
+
+
+SELECT printf("%.2f",printf("%.2f", t1.filter)/printf("%.2f",t2.total) * 100.0) AS proportion FROM(select count(*) as filter from movies WHERE title LIKE "%war%" and score>50) as t1,(select count(*) as total from movies) as t2
+
