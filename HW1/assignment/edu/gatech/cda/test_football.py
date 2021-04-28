@@ -58,6 +58,9 @@ def main():
     A = sparse.coo_matrix((v, (i, j)), shape=(n, n))
     A = (A + np.transpose(A))/2
 
+    print(A)
+
+
     D = np.diag(1/np.sqrt(np.sum(A, axis=1)).A1)
     L = D @ A @ D
 

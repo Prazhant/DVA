@@ -224,7 +224,7 @@ class Utility(object):
                     max_information_gain=info_gain
 
         X_left, X_right, y_left, y_right =Utility.partition_classes(self,X,y,split_attribute,split_val)
-        return split_attribute,split_val,X_left, X_right, y_left, y_right
+        return {'split_attribute':split_attribute, 'split_val':split_val,'X_left':X_left, 'X_right':X_right, 'y_left':y_left, 'y_right':y_right, 'info_gain':max_information_gain}
         #############################################
 
 class DecisionTree(object):
@@ -252,56 +252,53 @@ class DecisionTree(object):
         #    (eg. split attribute and split value)
         ### Implement your code here
         #############################################
+        def create_segment(self,segment_type,x,y,depth):
+            self.tree[segment_type] = DecisionTree(max_depth=10)
+            self.tree[segment_type].learn(x, y, self, depth+1)
+
         if 0 in {len(X),len(y)}:
-            self.tree['state']='leaf'
-            self.tree['result']=0
+            self.tree['type']='leaf'
+            self.tree['value']=0
             return
 
         if len(set(y))==1:
-            self.tree['state']='leaf'
-            self.tree['result']=y[0]
+            self.tree['type']='leaf'
+            self.tree['value']=y[0]
             return
 
-        counts=dict((x,l.count(x)) for x in set(y))
-        max_val=max(counts.values())
+        best_split = Utility.best_split(self,X, y)
+        split_attribute = best_split["split_attribute"]
+        split_val = best_split["split_val"]
+        X_left= best_split["X_left"]
+        X_right= best_split["X_right"]
+        y_left = best_split["y_left"]
+        y_right= best_split["y_right"]
 
-        split_attribute, split_val, X_left, X_right, y_left, y_right = best_split(X, y)
-        self.tree['state'] = "parent"
-        self.tree['result'] = "null"
+        self.tree['type'] = "non-leaf"
+        self.tree['value'] = "null"
 
-        self.tree['split_attr'] = split_attribute
-        self.tree['split_val'] = split_val
+        self.tree['split_attribute'] = split_attribute
+        self.tree['split_value'] = split_val
 
-        self.tree['left'] = DecisionTree()
-        self.tree['left'].learn(X_left, y_left, self, depth+1)
-
-        self.tree['right'] = DecisionTree()
-        self.tree['right'].learn(X_right, y_right, self, depth+1)
-
-        #############################################
+        create_segment(self,'left',X_left,y_left,depth)
+        create_segment(self,'right',X_right,y_right,depth)
 
 
     def classify(self, record):
         # TODO: classify the record using self.tree and return the predicted label
         ### Implement your code here
         #############################################
-        if self.tree['state']=='leaf':
-            return self.tree['result']
+        if len(self.tree.keys())<=2:
+            return self.tree['value']
 
         else:
-            attribute = record[self.tree['split_attr']]
-            value = self.tree['split_val']
+            attribute = record[self.tree['split_attribute']]
+            value = self.tree['split_value']
 
-            if isinstance(attribute, str):
-                if attribute == value:
-                    return self.tree['left'].classify(record)
-                else:
-                    return self.tree['right'].classify(record)
+            if attribute <= value:
+                return self.tree['left'].classify(record)
             else:
-                if attribute <= value:
-                    return self.tree['left'].classify(record)
-                else:
-                    return self.tree['right'].classify(record)
+                return self.tree['right'].classify(record)
         #############################################
 
 
@@ -360,13 +357,10 @@ class RandomForest(object):
         labels = []  # class labels for the sampled records
         ### Implement your code here
         #############################################
-        index = np.random.choice(len(XX), n)
-        raw_sample = [XX[i] for i in index]
-
-        for data in raw_sample:
-            samples.append(data[:-1])
-            labels.append(data[-1])
-        #############################################
+        xx_np=np.array(XX)
+        random_indices = np.random.choice(len(XX), n)
+        sample=xx_np[random_indices,:-1].tolist()
+        labels=xx_np[random_indices,xx_np.shape[1]-1].tolist()
         return (sample, labels)
 
     def bootstrapping(self, XX):
@@ -382,8 +376,8 @@ class RandomForest(object):
         # and labels by calling the learn function from your DecisionTree class.
         ### Implement your code here
         #############################################
-        for i in range(self.num_trees):
-            self.decision_trees[i].learn(self.bootstraps_datasets[i], self.bootstraps_labels[i])
+        for tree in range(self.num_trees):
+            self.decision_trees[tree].learn(self.bootstraps_datasets[tree], self.bootstraps_labels[tree])
         #############################################
 
     def voting(self, X):
@@ -414,13 +408,11 @@ class RandomForest(object):
                 # NOTE - you can add few lines of codes above (but inside voting) to make this work
                 ### Implement your code here
                 #############################################
-                for decision_tree in self.decision_trees:
-                    votes.append(decision_tree.classify(record))
+                for tree in self.decision_trees:
+                    votes.append(tree.classify(record))
                 counts = np.bincount(votes)
-                y = np.append(y, np.argmax(counts))
-                #############################################
-            else:
-                y = np.append(y, np.argmax(counts))
+
+            y = np.append(y, np.argmax(counts))
 
         return y
 

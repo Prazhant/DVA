@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<script type="text/javascript" src="../lib/d3.v5.min.js"></script>
+<html xmlns:mso="urn:schemas-microsoft-com:office:office" xmlns:msdt="uuid:C2F41010-65B3-11d1-A29F-00AA00C14882"><head>
+<title>Graph</title>
+<link rel="stylesheet" href="graph.css">
+<!--[if gte mso 9]><xml>
+<mso:CustomDocumentProperties>
+<mso:display_urn_x003a_schemas-microsoft-com_x003a_office_x003a_office_x0023_Editor msdt:dt="string">Hull, Matthew D</mso:display_urn_x003a_schemas-microsoft-com_x003a_office_x003a_office_x0023_Editor>
+<mso:xd_Signature msdt:dt="string"></mso:xd_Signature>
+<mso:Order msdt:dt="string">35500.0000000000</mso:Order>
+<mso:ComplianceAssetId msdt:dt="string"></mso:ComplianceAssetId>
+<mso:TemplateUrl msdt:dt="string"></mso:TemplateUrl>
+<mso:xd_ProgID msdt:dt="string"></mso:xd_ProgID>
+<mso:display_urn_x003a_schemas-microsoft-com_x003a_office_x003a_office_x0023_Author msdt:dt="string">Hull, Matthew D</mso:display_urn_x003a_schemas-microsoft-com_x003a_office_x003a_office_x0023_Author>
+<mso:ContentTypeId msdt:dt="string">0x010100D48F87729E805A4096AD64C4E51DACBE</mso:ContentTypeId>
+<mso:_SourceUrl msdt:dt="string"></mso:_SourceUrl>
+<mso:_SharedFileIndex msdt:dt="string"></mso:_SharedFileIndex>
+</mso:CustomDocumentProperties>
+</xml><![endif]-->
+<title></title></head><body>
+<script src="lib/d3/d3.min.js"></script>
+<script src="lib/d3-dsv/d3-dsv.min.js"></script>
+<script src="lib/d3-fetch/d3-fetch.min.js"></script>
+<script>
+
+    function getFillColor(links) {
+        return function (d) {
+            d.weight = links.filter(function (l) {
+                return l.source.index == d.index || l.target.index == d.index;
+            }).length;
+            if (d.weight > 7) {
+                return "#2c7fb8"
+            } else if (d.weight > 3) {
+                return "#7fcdbb"
+            } else {
+                return "#edf8b1"
+            }
+        };
+    }
+
+    d3.dsv(",", "board_games.csv", function(d) {
+  return {
+    source: d.source,
+    target: d.target,
+    value: +d.value
+  }
+}).then(function(data) {
+
+  var links = data;
+
+  var nodes = {};
+
+  // compute the distinct nodes from the links.
+  links.forEach(function(link) {
+      link.source = nodes[link.source] || (nodes[link.source] = {name: link.source});
+      link.target = nodes[link.target] || (nodes[link.target] = {name: link.target});
+  });
+
+  var width = 1200,
+      height = 700;
+
+  var force = d3.forceSimulation()
+      .nodes(d3.values(nodes))
+      .force("link", d3.forceLink(links).distance(100))
+      .force('center', d3.forceCenter(width / 2, height / 2))
+      .force("x", d3.forceX())
+      .force("y", d3.forceY())
+      .force("charge", d3.forceManyBody().strength(-250))
+      .alphaTarget(1)
+      .on("tick", tick);
+
+  var svg = d3.select("body").append("svg")
+      .attr("width", width)
+      .attr("height", height);
+
+  // add the links
+  var path = svg.append("g")
+      .selectAll("path")
+      .data(links)
+      .enter()
+      .append("path")
+      .attr("class", function(d) {
+          if(d.value==0){
+            return "link-similar" ;
+          }
+          return "link-dis-similar";
+      });
+
+  svg.append("text")
+      .attr("transform","translate(1100,30)")
+      .style("text-anchor", "middle")
+      .attr("width",50)
+      .attr("height",50)
+      .text("gtid: pkubsad3");
+
+  // define the nodes
+  var node = svg.selectAll(".node")
+      .data(force.nodes())
+      .enter().append("g")
+      .attr("class", "node")
+      .call(d3.drag()
+          .on("start", dragstarted)
+          .on("drag", dragged)
+          .on("end", dragended))
+          .on("dblclick",doubleClicked);
+
+  // add the nodes
+  node.append("circle")
+      .style("fill",getFillColor(links))
+      .attr("r", function(d) {
+             d.weight = links.filter(function(l) {
+                   return l.source.index == d.index || l.target.index == d.index;
+             }).length;
+     var minRadius = 3;
+     return minRadius + (d.weight * 2);
+   });
+
+  // adding node label
+    node.append("text")
+    .attr("dx", 12)
+    .attr("dy", "-5")
+    .text(function(d) { return d.name});
+
+  // add the curvy lines
+  function tick() {
+      path.attr("d", function(d) {
+          var dx = d.target.x - d.source.x,
+              dy = d.target.y - d.source.y,
+              dr = Math.sqrt(dx * dx + dy * dy);
+          return "M" +
+              d.source.x + "," +
+              d.source.y + "A" +
+              dr + "," + dr + " 0 0,1 " +
+              d.target.x + "," +
+              d.target.y;
+      });
+
+      node.attr("transform", function(d) {
+          return "translate(" + d.x + "," + d.y + ")"; 
+      });
+  };
+
+  function dragstarted(d) {
+
+      if (!d3.event.active) force.alphaTarget(0.3).restart();
+      d.fx = d.x;
+      d.fy = d.y;
+      d.fixed=true
+
+      // console.log("started:"+JSON.stringify(d))
+  };
+
+  function dragged(d) {
+      d.fx = d3.event.x;
+      d.fy = d3.event.y;
+      // console.log("dragged:"+JSON.stringify(d))
+  };
+
+  function dragended(d) {
+      console.log("ended:"+JSON.stringify(d))
+      if (!d3.event.active) force.alphaTarget(0);
+      if (d.fixed == true) {
+          d.fx = d.x;
+          d.fy = d.y;
+          d3.select(this)
+                .append("image")
+                .attr("xlink:href", "pin.svg")
+                .attr("x", -5)
+                .attr("y", -10)
+
+
+          d3.select(this)
+                .select("circle").style("fill","#dd1c77").style("stroke-width","2px")
+          d3.select(this)
+                .attr("fx",d.x)
+                .attr("fy",d.y)
+          d.fixed == false
+
+      }
+      else {
+          d.fx = null;
+          d.fy = null;
+      }
+  };
+
+  function doubleClicked(d) {
+       console.log("double clicked:",d)
+          d.fixed = false;
+          d.fx = null;
+          d.fy = null;
+           d3.select(this)
+                .selectAll("image").remove();
+
+           d3.select(this)
+                .select("circle").style("fill",getFillColor(links))
+                .style("stroke-width","1.5px")
+
+  };
+  
+}).catch(function(error) {
+  console.log(error);
+});
+
+</script>
+</body>
+</html>

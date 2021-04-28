@@ -354,6 +354,7 @@ class  TMDBAPIUtils:
 #   - wait a while and then try again.  It may be necessary to insert periodic sleeps when you are building your graph.
 
 
+
 def return_name()->str:
     """
     Return a string containing your GT Username
@@ -367,7 +368,7 @@ def return_argo_lite_snapshot()->str:
     """
     Return the shared URL of your published graph in Argo-Lite
     """
-    return "https://poloclub.github.io/argo-graph-lite/#bdc0b6ad-2a38-4242-9e6c-10e92e451e3f"
+    return "https://poloclub.github.io/argo-graph-lite/#ea20f7cf-4243-488d-a55f-b695d4c68511"
 
 
 

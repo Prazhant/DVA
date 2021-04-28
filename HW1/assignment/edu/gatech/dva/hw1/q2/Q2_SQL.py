@@ -188,7 +188,7 @@ class HW2_sql():
     
     def part_gi(self,connection):
         ############### EDIT SQL STATEMENT ###################################
-        part_g_i_sql = "With query AS(SELECT id cast_member, avg(collaboration_score) collaboration_score FROM (SELECT cast_member_id1 id, avg(average_movie_score) collaboration_score FROM good_collaboration GROUP BY cast_member_id1 UNION all SELECT cast_member_id2 id, avg(average_movie_score) collaboration_score FROM good_collaboration GROUP BY cast_member_id2) GROUP BY cast_member ORDER BY collaboration_score DESC limit 5) SELECT cast_id, cast_name, printf(\"%0.2f\", collaboration_score) collaboration_score FROM (SELECT t1.cast_member cast_id, cb.cast_name cast_name, collaboration_score FROM cast_bio cb,query t1 WHERE t1.cast_member == cb.cast_id ORDER BY collaboration_score desc,cast_name)"
+        part_g_i_sql = "With query AS(SELECT id cast_member, printf(\"%0.2f\", avg(collaboration_score)) collaboration_score FROM (SELECT cast_member_id1 id, avg(average_movie_score) collaboration_score FROM good_collaboration GROUP BY cast_member_id1 UNION all SELECT cast_member_id2 id, avg(average_movie_score) collaboration_score FROM good_collaboration GROUP BY cast_member_id2) GROUP BY cast_member) SELECT cast_id, cast_name, collaboration_score FROM (SELECT t1.cast_member cast_id, cb.cast_name cast_name, collaboration_score FROM cast_bio cb,query t1 WHERE t1.cast_member == cb.cast_id ORDER BY collaboration_score desc,cast_name) limit 5;"
         ######################################################################
         cursor = connection.execute(part_g_i_sql)
         return cursor.fetchall()
@@ -209,7 +209,6 @@ class HW2_sql():
         ######################################################################
         sql = "SELECT COUNT(id) FROM movie_overview;"
         cursor = connection.execute(sql)
-        print("cursor",cursor)
         return cursor.fetchall()[0][0]
         
     def part_hi(self,connection):
@@ -277,8 +276,7 @@ if __name__ == "__main__":
 
     try:
         print('\033[32m' + "part c: " + '\033[m' + str(db.part_c(conn)))
-    except(e):
-        print(e)
+    except():
         print("Error in part c")
 
     try:

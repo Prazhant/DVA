@@ -1,0 +1,36 @@
+path.link {
+  fill: none;
+  stroke: #666;
+  stroke-width: 1.5px;
+}
+
+path.link-similar {
+  fill: none;
+  stroke: #666;
+  stroke-width: 3px;
+}
+
+path.link-dis-similar{
+  fill: none;
+  stroke: green;
+  stroke-width: 1px;
+  stroke-dasharray: 5;
+}
+
+circle {
+  fill: #ccc;
+  stroke: #fff;
+  stroke: black;
+  stroke-width: 1.5px;
+}
+
+text {
+  fill: #000;
+  font: 10px sans-serif;
+  pointer-events: none;
+  font-weight: bold;
+}
+pinned{
+  fill: #dd1c77;
+  stroke-width: 2px
+}

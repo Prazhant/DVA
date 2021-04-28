@@ -1,0 +1,148 @@
+CREATE VIEW good_collaboration (
+    cast_member_id1,
+    cast_member_id2,
+  	movie_count,
+  average_movie_score
+)
+AS 
+WITH [query] AS (
+    SELECT 
+           [1st].cast_id AS cast_id1,           
+           [2nd].cast_id AS cast_id2,
+           count( * ) AS count,
+           avg([1st].score) avg_score
+      FROM (
+               SELECT 
+                      m.score,
+                      mc.movie_id,
+                      mc.cast_id cast_id
+                 FROM movie_cast mc,
+                      movies m
+                WHERE mc.movie_id = m.id
+           )
+           [1st]
+           INNER JOIN
+           (
+               SELECT 
+                      m.score,
+                      mc.movie_id,
+                      mc.cast_id cast_id
+                 FROM movie_cast mc,
+                      movies m
+                WHERE mc.movie_id = m.id
+           )
+           [2nd] ON [1st].movie_id = [2nd].movie_id
+     GROUP BY cast_id1,
+             cast_id2
+    HAVING count >= 3 AND 
+           avg_score >= 40
+)
+SELECT temp_t.cast_id1 as cast_member_id1,
+temp_t.cast_id2 as cast_member_id2,
+temp_t.count as movie_count,
+temp_t.avg_score average_movie_score
+from query temp_t
+where cast_id1 < cast_id2
+union all
+select *
+from query t
+where cast_id1 > cast_id2 and
+      not exists (select 1 from query t2 where t2.cast_id1 = t.cast_id2 and t2.cast_id2 = t.cast_id1);
+
+
+
+select *
+from query temp_t
+where cast_member_id1 < cast_member_id2
+union all
+select *
+from query t
+where cast_member_id1 > cast_member_id2 and
+      not exists (select 1 from query t2 where t2.cast_member_id1 = t.cast_member_id2 and t2.cast_member_id2 = t.cast_member_id1);
+      
+
+
+
+select * from good_collaboration
+
+--where cast_member_id1=1333
+
+select id cast_member, printf("%.2f",avg(collaboration_score)) collaboration_score from (
+select cast_member_id1 id,avg(average_movie_score) collaboration_score 
+from good_collaboration
+group by cast_member_id1 
+union all
+select cast_member_id2 id,avg(average_movie_score) collaboration_score 
+from good_collaboration
+group by cast_member_id2)
+group by cast_member
+
+where cast_member_id2='Kiran Shah'
+
+CREATE TABLE cast_bio ( cast_id integer, cast_name text, birthday date, popularity real );
+INSERT INTO cast_bio(cast_id, cast_name, birthday,popularity) SELECT DISTINCT cast_id, cast_name, birthday,popularity FROM movie_cast
+
+select * from good_collaboration where cast_member_id2 = 25072
+
+SELECT id cast_member, printf("%.2f", avg(collaboration_score)) collaboration_score FROM(SELECT cast_member_id1 id, avg(average_movie_score) collaboration_score FROM good_collaboration GROUP BY cast_member_id1 UNION all SELECT cast_member_id2 id, avg(average_movie_score) collaboration_score FROM good_collaboration GROUP BY cast_member_id2) GROUP BY cast_member
+
+
+
+
+
+select * from cast_bio where cast_id in (25072,
+93210,
+1023139,
+1267329,
+1315036)
+
+With query AS 
+    (SELECT id cast_member,
+         printf("%0.2f",avg(collaboration_score)) collaboration_score FROM
+        (SELECT cast_member_id1 id,
+         avg(average_movie_score) collaboration_score
+        FROM good_collaboration
+        GROUP BY  cast_member_id1
+        UNION all
+        SELECT cast_member_id2 id,
+         avg(average_movie_score) collaboration_score
+        FROM good_collaboration
+        GROUP BY  cast_member_id2)
+        GROUP BY  cast_member)
+select cast_id,cast_name, collaboration_score from (
+SELECT t1.cast_member cast_id,
+         cb.cast_name cast_name,
+         collaboration_score
+FROM cast_bio cb,query t1
+WHERE t1.cast_member == cb.cast_id
+ORDER BY  collaboration_score desc,cast_name)
+limit 5
+
+
+
+select temp_t.userid, temp_t.function1, temp_t.function2
+from test temp_t
+where function1 < function2
+union all
+select *
+from test t
+where function1 > function2 and
+      not exists (select 1 from test t2 where t2.function1 = t.function2 and t2.function2 = t.function1);
+      
+select * from test
+
+
+SELECT t1.function1 as cast_member_id1,
+t1.function2 as cast_member_id2
+FROM test t1 
+WHERE t1.function1 < t1.function2
+and t1.function1 <> t1.function2
+
+
+CREATE VIRTUAL TABLE movie_overview USING fts4(id integer, overview text);
+select * from movie_overview
+
+SELECT count(*) FROM movie_overview WHERE overview MATCH 'fight';
+SELECT * FROM movie_overview WHERE overview MATCH 'space NEAR/5 program';
+
+SELECT * FROM movie_overview WHERE overview MATCH 'space NEAR/5 program';

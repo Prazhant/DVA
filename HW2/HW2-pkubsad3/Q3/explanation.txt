@@ -1,0 +1,2 @@
+LogScale:  Log scales are used when max of the data is exponentially larger than min of the data. Ex: county populations: data range from 1000s to Millions
+SquareRootScale: Similar to logscale but if we have to handle 0s and also if there is right-skewness in the data.
